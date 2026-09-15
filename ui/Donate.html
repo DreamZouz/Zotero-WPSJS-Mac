@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>支持我们 - 捐赠通道</title>
+   
+</head>
+<body>
+    <div class="container">
+        <h2 style="text-align: center;">如果您喜欢本项目，那就请作者喝杯咖啡吧！</h2>
+    <h2 style="text-align: center;">感谢您的支持！！</h2>
+        <p class="description">请扫描下方二维码进行捐赠，您的支持是我们持续前进的动力！</p>
+        
+        <div class="qrcode-section">
+            <div class="payment-box">
+                <h2>微信捐赠</h2>
+                <img src="../images/weixin.png" alt="微信付款码" class="qrcode">
+              
+            </div>
+
+            <div class="payment-box">
+                <h2>支付宝捐赠</h2>
+                <img src="../images/zhifubao.png" alt="支付宝付款码" class="qrcode">
+              
+            </div>
+        </div>
+
+        
+    </div>
+</body>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        margin: 0;
+        padding: 20px;
+        background-color: #f5f5f5;
+    }
+
+    .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .qrcode-section {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        gap: 30px;
+    }
+
+    .payment-box {
+        text-align: center;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        min-width: 220px;
+    }
+
+    .qrcode {
+        width: 200px;
+        height: 200px;
+        margin: 15px 0;
+    }
+
+    .description {
+        color: #666;
+        margin: 20px 0;
+        text-align: center;
+    }
+
+    @media (max-width: 600px) {
+        .qrcode-section {
+            flex-direction: column;
+        }
+        
+        .qrcode {
+            width: 100%;
+            height: auto;
+        }
+    }
+</style>
+</html>

@@ -1,0 +1,42 @@
+<customUI xmlns="http://schemas.microsoft.com/office/2006/01/customui" onLoad="OnAddinLoad">
+    <ribbon startFromScratch="false">
+        <tabs>
+            <tab id="zoteroTab" label="Zotero" keytip="C">
+                <group id="zoteroGroup" >
+                    <button id="btnAddEditCitation" label="Add/Edit Citation" onAction="OnAction" getImage="GetImage" visible="true" size="large" supertip="Insert a new citation, or edit the citation at the current cursor position" keytip="C"/>
+                    <button id="btnAddEditBib" label="Add/Edit Bibliography" onAction="OnAction" getImage="GetImage" visible="true" size="large" supertip="Insert a new bibliography, or edit the existing bibliography, at the current cursor position" keytip="B"/>
+                    <button id="btnRefresh" label="Refresh" onAction="OnAction" getImage="GetImage" visible="true" size="large" supertip="Update all citations to reflect changes" keytip="R"/>
+                     <separator/>
+                    <button id="btnPref" label="Document Preferences" onAction="OnAction" getImage="GetImage" visible="true"   supertip="Change the citation style or locale" keytip="P"/>
+                    <button id="btnAddNote" label="Insert Note" onAction="OnAction" getImage="GetImage" visible="true"   supertip="Insert a new note at the current cursor position" keytip="N"/>
+                     <separator/>
+                    <button id="btnUnlink" label="Unlink Citations" onAction="OnAction" getImage="GetImage" visible="true"   supertip="Remove all Zotero field codes and unlink from Zotero library" keytip="U"/>
+                   <button id="btnCitationHyperlinks" label="CitationHyperlinks" onAction="OnAction" getImage="GetImage" visible="true"  supertip="CitationHyperlinks" keytip="E"/>
+                    
+                 </group>
+                  
+                <group id="AiList" >
+                  <separator/>
+                <menu id="menu1" label="AiTools"  getImage="GetImage" visible="true"  showItemImage="true" size="large">
+                     <button id="yuanbaoItem" label="腾讯元宝" onAction="dropDownOnAction" getImage="GetImage" visible="true" size="large" />   
+                    <button id="baiduaiItem" label="百度Ai" onAction="dropDownOnAction" getImage="GetImage" visible="true" size="large" />   
+                    <button id="deepseekItem" label="DeepSeek" onAction="dropDownOnAction" getImage="GetImage" visible="true" size="large" />   
+                    <button id="chatGPTItem" label="ChatGPT" onAction="dropDownOnAction" getImage="GetImage" visible="true" size="large" />   
+                    <button id="zhipuItem" label="智谱清言" onAction="dropDownOnAction" getImage="GetImage" visible="true" size="large" />
+                    <button id="tongyiItem" label="通义千问" onAction="dropDownOnAction" getImage="GetImage" visible="true" size="large" />      
+                    <button id="doubaoItem" label="豆包" onAction="dropDownOnAction" getImage="GetImage" visible="true" size="large" />   
+                    <button id="kimiItem" label="Kimi" onAction="dropDownOnAction" getImage="GetImage" visible="true" size="large" />   
+                </menu>
+                    
+                    <button id="btnDonate" label="Donate" onAction="OnAction" getImage="GetImage" visible="true" size="large" />
+                  
+                     <menu id="menu2" label="Settings"  getImage="GetImage" visible="true"  showItemImage="true" size="large">
+                  
+                      <button id="btnZoteroSet" label="Zotero-Set" onAction="SettingsOnAction" getImage="GetImage" visible="true" size="large" />   
+                </menu>
+                      <button id="btnAbout" label="About" onAction="SettingsOnAction" getImage="GetImage" visible="true" size="large" />
+                </group>
+            </tab>
+        </tabs>
+    </ribbon>
+</customUI>

@@ -1,0 +1,11 @@
+WPS-Zotero Mac 通信修复（2026-09-15）
+
+原因：WPS 的浏览器请求缺少 X-Zotero-Connector-API-Version，Zotero 10.0.2 关闭请求；旧代理返回失败。
+修复：Mac/proxy.py 改用标准库 HTTP 中转，在转发时添加 Connector API 版本 3，正确处理跨域预检与 HTTP 响应。只监听 127.0.0.1:21931。
+启动：proxy.app 原生双架构入口由 Mac/proxy-launcher.c 编译，使用已安装的 /usr/bin/python3。WPS 启动调用增加 open -n，避免 Launch Services 复用已经退出的中转实例。
+已同步更新桌面安装源和 WPS 已安装副本。未更改文档或 Zotero 数据。
+验证：模拟 WPS POST /connector/ping 成功（200），OPTIONS 预检成功（204），应用正常启动和停止后再次启动成功。
+尚需用户在 WPS 中点击 Add/Edit Citation 验证实际插入操作。
+
+备份：本目录 proxy.py.original、zotero-proxy.original 是桌面源文件备份；installed-* 目录是更新前已安装文件备份。
+回退：先退出 WPS，停止中转进程，再将 installed-* 下的 proxy.py 和 proxy.app/Contents/MacOS/zotero-proxy 按相同相对路径还原至 ~/Library/Containers/com.kingsoft.wpsoffice.mac/Data/.kingsoft/wps/jsaddons/wps-zotero_1.0.0/，重新打开 WPS。

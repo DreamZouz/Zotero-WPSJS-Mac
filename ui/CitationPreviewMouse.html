@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>引注预览</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #f5f5f5;
+
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            color: #333;
+            padding-top: 10px;
+
+        }
+
+        .fixed-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #f5f5f5;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header-title {
+            font-size: 22px;
+            /* 缩小标题字号 */
+            line-height: 1.2;
+            /* 紧凑行高 */
+            color: #333;
+            margin-bottom: 6px;
+            /* 减少标题下边距 */
+            text-align: center;
+        }
+
+
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+
+            /* 增加顶部间距 */
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            min-height: 180px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+
+
+
+        .card-section {
+
+            position: relative;
+            padding: 0.5rem;
+            transition: background-color 0.2s ease;
+
+        }
+
+        .card-section:hover {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+
+        .top-section {
+            flex: 0 0 auto;
+            /* 确保不会因为其他元素的变化而改变大小 */
+            height: 40px;
+            /* 根据需要调整具体的像素值 */
+            cursor: pointer;
+
+        }
+
+        .bottom-section {
+            flex-grow: 1;
+            cursor: pointer;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            min-width: 0;
+
+        }
+
+        .card-id {
+
+            font-weight: 700;
+            color: #6366f1;
+            margin-right: 1rem;
+            min-width: 50px;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            color: #1f2937;
+            font-weight: 600;
+            white-space: nowrap;
+            /* 禁止换行 */
+            overflow: hidden;
+            /* 隐藏溢出内容 */
+            text-overflow: ellipsis;
+            /* 显示省略号 */
+            flex: 1;
+            /* 新增：在flex容器中自动扩展 */
+            min-width: 0;
+            /* 新增：允许文本收缩 */
+
+        }
+
+        .card-content {
+            color: #222222;
+            line-height: 1.8;
+            font-size: 1.2rem;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 4;
+            overflow: hidden;
+            min-height: 4.8em;
+            max-height: 7.2em;
+            position: relative;
+
+        }
+
+        @supports not (-webkit-line-clamp: 3) {
+            .card-content {
+                max-height: 7.2em;
+                mask-image: linear-gradient(to bottom,
+                        black calc(100% - 2em),
+                        transparent 100%);
+            }
+
+            .card-content::after {
+                content: '...展开';
+                position: absolute;
+                right: 0;
+                bottom: 0;
+                background: rgb(238, 28, 28);
+                padding-left: 0.5rem;
+            }
+        }
+
+        @media (hover: hover) {
+            .card:hover .bottom-section .card-content {
+                -webkit-line-clamp: unset;
+                max-height: none;
+                mask-image: none;
+            }
+        }
+
+        .card.expanded .card-content {
+            animation: expand 0.3s ease;
+            -webkit-line-clamp: unset;
+        }
+
+        @keyframes expand {
+            from {
+                max-height: 7.2em;
+            }
+
+            to {
+                max-height: 50vh;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card-container" id="cardContainer"></div>
+
+    <script>
+
+        // 原始数据保持不便
+        const selectionField = window.Application.Selection.Fields.Item(1)
+        const myRange = selectionField.Code.Text
+        const jsonStart = myRange.indexOf('{');
+        const jsonEnd = myRange.lastIndexOf('}') + 1;
+        const jsonString = myRange.slice(jsonStart, jsonEnd);
+        const cslData = JSON.parse(jsonString);
+
+        const cardsData = processCitationData(cslData);
+
+        class CardGenerator {
+            constructor(containerId, data) {
+                this.container = document.getElementById(containerId);
+                this.data = data;
+                this.init();
+            }
+
+            createCardHTML(card) {
+                return `
+                    <div class="card" data-id="${card.id}">
+                        <div class="card-section top-section" data-section="top">
+                            <div class="card-header">
+                              
+                                <h3 class="card-title">${card.title}</h3>
+                            </div>
+                        </div>
+                        <div class="card-section bottom-section" data-section="bottom">
+                            <p class="card-content">${card.content}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            init() {
+                const fragment = document.createDocumentFragment();
+                this.data.forEach(item => {
+                    const cardWrapper = document.createElement('div');
+                    cardWrapper.innerHTML = this.createCardHTML(item);
+                    fragment.appendChild(cardWrapper.firstElementChild);
+                });
+                this.container.appendChild(fragment);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            document.documentElement.addEventListener('mouseleave', function (e) {
+                window.Application.PluginStorage.setItem("topTo", "")
+
+                window.close();
+
+            });
+            new CardGenerator('cardContainer', cardsData);
+
+
+            document.querySelectorAll('.card-section').forEach(section => {
+                section.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const card = this.closest('.card');
+                    const cardId = card.dataset.id;
+                    const sectionType = this.dataset.section;
+                    const selectedData = cardsData.find(item => item.id == cardId);
+
+                    /// console.log('点击区域:', sectionType);
+                    console.log('卡片数据:', selectedData);
+
+                    // 根据点击区域执行不同操作
+                    if (sectionType === 'top') {
+                        window.Application.PluginStorage.setItem("topTo", "true")
+                        window.Application.ActiveDocument.Fields.Item(selectionField.Index).Select()
+
+                    } else {
+
+                        let flag = 0;
+                        //1.获取Find对象 
+                        let find = window.Application.Selection.Find;
+                        //2.设置要搜索的文本和其他搜索选项
+                        find.Text = selectedData.positioning + ``
+                        find.Forward = true //文档中向前搜索
+                        find.Wrap = 1 // wdFindContinue 1
+                        find.MatchCase = false //区分大小写
+                        find.MatchByte = false //区分全角和半角
+                        find.MatchWildcards = false //通配符
+                        find.MatchWholeWord = false //全字匹配
+                        find.MatchFuzzy = false
+
+                        while (find.Execute()) {
+                            //console.log(window.Application.Selection.Fields.Item(1).Result.Text) 
+                            let cpfId = window.Application.PluginStorage.getItem(window.Application.ActiveDocument.DocID + "");
+
+                            if (!cpfId) {
+                                const cpId = window.Application.Selection.Fields.Item(1).Index
+                                window.Application.PluginStorage.setItem(window.Application.ActiveDocument.DocID + "", cpId + "")
+                            }
+
+                            window.Application.Selection.Fields.Item(1).Result.HighlightColorIndex = 0;
+                            flag = 1;
+                            let fieldRange = window.Application.Selection.Range.Duplicate;
+                            fieldRange.MoveStart(wps.Enum.wdParagraph, -1); // 向前定位段落起始
+
+                            // 创建临时范围避免污染主选区
+                            let tempRange = window.Application.Selection.Range.Duplicate;
+
+                            // 折叠到段落起点再扩展
+                            tempRange.Collapse(wps.Enum.wdCollapseStart);
+                            tempRange.Expand(wps.Enum.wdParagraph);
+
+                            // 验证是否为有效段落
+                            if (!tempRange.Text.match(/\x0d\x07/)) { // 排除域代码结束标记
+
+
+                                tempRange.HighlightColorIndex = 7;
+                                window.Application.ActiveWindow.ScrollIntoView(window.Application.Selection.Range)
+                                break;
+                            }
+                        }
+                        if (!flag) { alert("文献不存在！", 1) }
+                    }
+                });
+            });
+
+
+            document.querySelectorAll('.card').forEach(card => {
+                card.addEventListener('click', function (e) {
+                    if (e.target === this) {
+
+                    }
+                });
+            });
+        });
+
+        function processCitationData(data) {
+            const result = [];
+            let idCounter = 1;
+            const formattedCitation = data.properties.formattedCitation;
+
+            for (const citationItem of data.citationItems) {
+                const itemData = citationItem.itemData;
+                let contentParts = [];
+
+                // 处理作者（超过3个显示第一个加语言敏感后缀）
+                if (itemData.author?.length > 0) {
+                    const originalAuthors = itemData.author;
+                    const authorCount = originalAuthors.length;
+                    const isChinese = ['zh', 'zho', 'chi'].includes((itemData.language || '').toLowerCase());
+
+
+                    const processAuthor = a => {
+                        if (typeof a === 'string') return a.trim();
+                        return [
+                            a.literal,                      // 1. 预格式化全名
+                            a.fullName,                     // 2. 全名字段
+                            [a.family, a.given].join(' '),  // 3. 姓+名组合
+                            a.name,                         // 4. 通用名字段
+                            Object.values(a)                // 5. 应急兜底：拼接所有字符串属性
+                                .filter(v => typeof v === 'string')
+                                .join(' ')
+                        ].find(v => v?.trim())?.trim() || '';
+                    };
+
+                    // 主处理逻辑
+                    let authorStr;
+                    if (authorCount > 3) {
+                        // 超限情况：显示第一个作者 + 语言敏感后缀
+                        const [firstAuthor] = originalAuthors.map(processAuthor).filter(name => name);
+                        if (!firstAuthor) return; // 无有效作者时跳过
+                        const suffix = isChinese ? '等' : 'et al';
+                        authorStr = `${firstAuthor} ${suffix}`;
+                    } else {
+                        // 正常情况：显示最多3个作者
+                        const authors = originalAuthors
+                            .map(processAuthor)
+                            .filter(name => name)
+                            .slice(0, 3);
+                        if (authors.length === 0) return;
+                        authorStr = authors.join(', ');
+                    }
+
+                    // 统一标点处理（中文保留句号，英文用点号）
+                    const endingPunctuation = isChinese ? '。' : '.';
+                    authorStr = authorStr.replace(/[.,。，、]+$/g, '') + endingPunctuation;
+                    contentParts.push(authorStr);
+                }
+
+                // 处理标题
+                if (itemData.title) {
+                    const titleStr = itemData.title
+                        .trim()
+                        .replace(/\.+$/, '') + '.';
+                    contentParts.push(titleStr);
+                }
+
+                // 处理日期
+                if (itemData.issued?.hasOwnProperty('date-parts')) {
+                    const [year, month = 1, day = 1] = itemData.issued['date-parts'][0];
+                    const formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    contentParts.push(`${formattedDate}.`);
+                }
+
+                // 处理期刊标题
+                if (itemData['container-title']) {
+                    const containerStr = itemData['container-title']
+                        .trim()
+                        .replace(/\.+$/, '') + '.';
+                    contentParts.push(containerStr);
+                }
+
+                // 拼接内容并处理结尾格式
+                const content = contentParts.join(' ')
+                    .replace(/\s\./g, '.') // 处理多余的空格+句号
+                    .replace(/\.+/g, '.')  // 合并多个句号
+                    .trim();
+
+                result.push({
+                    id: idCounter++,
+                    title: formattedCitation,
+                    content: content.endsWith('.') ? content : content + '.',
+                    positioning: itemData.title
+                });
+            }
+
+            return result;
+        }
+
+
+    </script>
+</body>
+
+</html>

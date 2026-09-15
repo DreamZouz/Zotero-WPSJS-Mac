@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>引注预览</title>
+    <style>
+         * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            padding: 2rem;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            color: #333;
+            padding-top: 15px; 
+        }
+
+    
+        .fixed-delete-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+       
+        }
+
+      
+        .delete-btn {
+            padding: 8px 18px;
+            background-color: #ff4d4f;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+            font-weight: 500;
+        }
+
+        .delete-btn:hover {
+            background-color: #ff7875;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.18);
+        }
+
+        .delete-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 删除图标样式 */
+        .delete-icon {
+            width: 18px;
+            height: 18px;
+        }
+
+        .fixed-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #f5f5f5;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 1000px;
+            margin: 0 auto;
+            padding-top: 15px;
+            padding-bottom: 10px;
+        }
+
+        .header-title {
+            font-size: 22px;
+            line-height: 1.2;
+            color: #333;
+            margin-bottom: 6px;
+            text-align: center;
+            padding-top: 10px;
+        }
+
+
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-top: 20px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            min-height: 180px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #f8d881, #ee6262);
+        }
+
+        .card-section {
+            position: relative;
+            padding: 0.5rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .card-section:hover {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+
+        .top-section {
+            flex: 0 0 auto;
+            height: 40px;
+            cursor: pointer;
+        }
+
+        .bottom-section {
+            flex-grow: 1;
+            cursor: pointer;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            min-width: 0;
+        }
+
+        .card-id {
+            font-weight: 700;
+            color: #6366f1;
+            margin-right: 1rem;
+            min-width: 50px;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            color: #1f2937;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .card-content {
+            color: #222222;
+            line-height: 1.8;
+            font-size: 1.2rem;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 4;
+            overflow: hidden;
+            min-height: 4.8em;
+            max-height: 7.2em;
+            position: relative;
+        }
+
+        @supports not (-webkit-line-clamp: 3) {
+            .card-content {
+                max-height: 7.2em;
+                mask-image: linear-gradient(to bottom,
+                        black calc(100% - 2em),
+                        transparent 100%);
+            }
+
+            .card-content::after {
+                content: '...展开';
+                position: absolute;
+                right: 0;
+                bottom: 0;
+                background: rgb(238, 28, 28);
+                padding-left: 0.5rem;
+            }
+        }
+
+        @media (hover: hover) {
+            .card:hover .bottom-section .card-content {
+                -webkit-line-clamp: unset;
+                max-height: none;
+                mask-image: none;
+            }
+        }
+
+        .card.expanded .card-content {
+            animation: expand 0.3s ease;
+            -webkit-line-clamp: unset;
+        }
+
+        @keyframes expand {
+            from {
+                max-height: 7.2em;
+            }
+
+            to {
+                max-height: 50vh;
+            }
+        }
+
+        .deletion-notice {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #52c41a;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 3000;
+            animation: fadeOut 2s forwards;
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+                padding-top: 15px;
+            }
+
+            .fixed-delete-container {
+                top: 1px;
+                right: 15px;
+            }
+            
+            .delete-btn {
+                padding: 6px 15px;
+                font-size: 14px;
+            }
+            
+            .delete-icon {
+                width: 16px;
+                height: 16px;
+            }
+            
+            .fixed-header {
+                padding-top: 5px;
+            }
+            
+            .header-title {
+                font-size: 20px;
+                padding-top: 15px;
+            }
+            
+            .card-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+   
+            <div class="fixed-delete-container">
+        <button id="deleteButton" class="delete-btn">
+            <svg class="delete-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19V4M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
+            </svg>
+            删除引注
+        </button>
+    </div>
+    
+    <div class="card-container" id="cardContainer"></div>
+
+    <script>
+
+        // 原始数据保持不便
+        const selectionField = window.Application.Selection.Fields.Item(1)
+        const myRange = selectionField.Code.Text
+        const jsonStart = myRange.indexOf('{');
+        const jsonEnd = myRange.lastIndexOf('}') + 1;
+        const jsonString = myRange.slice(jsonStart, jsonEnd);
+        const cslData = JSON.parse(jsonString);
+
+        const cardsData = processCitationData(cslData);
+
+        class CardGenerator {
+            constructor(containerId, data) {
+                this.container = document.getElementById(containerId);
+                this.data = data;
+                this.init();
+            }
+
+            createCardHTML(card) {
+                return `
+                    <div class="card" data-id="${card.id}">
+                        <div class="card-section top-section" data-section="top">
+                            <div class="card-header">
+                              
+                                <h3 class="card-title">${card.title}</h3>
+                            </div>
+                        </div>
+                        <div class="card-section bottom-section" data-section="bottom">
+                            <p class="card-content">${card.content}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            init() {
+                const fragment = document.createDocumentFragment();
+                this.data.forEach(item => {
+                    const cardWrapper = document.createElement('div');
+                    cardWrapper.innerHTML = this.createCardHTML(item);
+                    fragment.appendChild(cardWrapper.firstElementChild);
+                });
+                this.container.appendChild(fragment);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new CardGenerator('cardContainer', cardsData);
+
+   // 添加删除按钮功能
+            document.getElementById('deleteButton').addEventListener('click', function() {
+                
+                if (confirm('确定要删除所有引注吗？此操作不可恢复。',"wps")) {
+                  
+                    document.getElementById('cardContainer').innerHTML = 
+                        '<div class="no-results" style="text-align: center; padding: 30px; font-size: 18px; color: #ff4d4f;">所有引注已删除</div>';
+                    
+                 window.Application.ActiveDocument.Fields.Item(selectionField.Index).Delete()
+                    
+                    
+                  
+                    this.innerHTML = '✓ 已删除';
+                    this.style.backgroundColor = '#52c41a';
+                    
+                   
+                }
+            });
+            document.querySelectorAll('.card-section').forEach(section => {
+                section.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const card = this.closest('.card');
+                    const cardId = card.dataset.id;
+                    const sectionType = this.dataset.section;
+                    const selectedData = cardsData.find(item => item.id == cardId);
+
+                    /// console.log('点击区域:', sectionType);
+                    console.log('卡片数据:', selectedData);
+
+                    // 根据点击区域执行不同操作
+                    if (sectionType === 'top') {
+                        window.Application.ActiveDocument.Fields.Item(selectionField.Index).Select()
+                    } else {
+                        
+                        let flag = 0;
+                        //1.获取Find对象 
+                        let find = window.Application.Selection.Find;
+                        //2.设置要搜索的文本和其他搜索选项
+                        find.Text = selectedData.positioning+``
+                        find.Forward = true //文档中向前搜索
+                        find.Wrap = 1 // wdFindContinue 1
+                        find.MatchCase = false //区分大小写
+                        find.MatchByte = false //区分全角和半角
+                        find.MatchWildcards = false //通配符
+                        find.MatchWholeWord = false //全字匹配
+                        find.MatchFuzzy = false
+
+                        while (find.Execute()) {
+                            //console.log(window.Application.Selection.Fields.Item(1).Result.Text) 
+                            let cpfId = window.Application.PluginStorage.getItem(window.Application.ActiveDocument.DocID+"");
+                           
+                           if(!cpfId){
+                               const cpId= window.Application.Selection.Fields.Item(1).Index
+                               window.Application.PluginStorage.setItem(window.Application.ActiveDocument.DocID+"",cpId+"")
+                           }
+
+                            window.Application.Selection.Fields.Item(1).Result.HighlightColorIndex = 0;
+                            flag = 1;
+                            let fieldRange = window.Application.Selection.Range.Duplicate;
+                            fieldRange.MoveStart(wps.Enum.wdParagraph, -1); // 向前定位段落起始
+
+                            // 创建临时范围避免污染主选区
+                            let tempRange = window.Application.Selection.Range.Duplicate;
+
+                            // 折叠到段落起点再扩展
+                            tempRange.Collapse(wps.Enum.wdCollapseStart);
+                            tempRange.Expand(wps.Enum.wdParagraph);
+
+                            // 验证是否为有效段落
+                            if (!tempRange.Text.match(/\x0d\x07/)) { // 排除域代码结束标记
+
+
+                                tempRange.HighlightColorIndex = 7;
+                                window.Application.ActiveWindow.ScrollIntoView(window.Application.Selection.Range)
+                                break;
+                            }
+                        }
+                        if (!flag) { alert("文献不存在！", 1) }
+                    }
+                });
+            });
+
+
+       
+        });
+
+        function processCitationData(data) {
+            const result = [];
+            let idCounter = 1;
+            const formattedCitation = data.properties.formattedCitation;
+
+            for (const citationItem of data.citationItems) {
+                const itemData = citationItem.itemData;
+                let contentParts = [];
+
+                // 处理作者（超过3个显示第一个加语言敏感后缀）
+                if (itemData.author?.length > 0) {
+                    const originalAuthors = itemData.author;
+                    const authorCount = originalAuthors.length;
+                    const isChinese = ['zh', 'zho', 'chi'].includes((itemData.language || '').toLowerCase());
+
+                  
+                    const processAuthor = a => {
+                        if (typeof a === 'string') return a.trim();
+                        return [
+                            a.literal,                      // 1. 预格式化全名
+                            a.fullName,                     // 2. 全名字段
+                            [a.family, a.given].join(' '),  // 3. 姓+名组合
+                            a.name,                         // 4. 通用名字段
+                            Object.values(a)                // 5. 应急兜底：拼接所有字符串属性
+                                .filter(v => typeof v === 'string')
+                                .join(' ')
+                        ].find(v => v?.trim())?.trim() || '';
+                    };
+
+                    // 主处理逻辑
+                    let authorStr;
+                    if (authorCount > 3) {
+                        // 超限情况：显示第一个作者 + 语言敏感后缀
+                        const [firstAuthor] = originalAuthors.map(processAuthor).filter(name => name);
+                        if (!firstAuthor) return; // 无有效作者时跳过
+                        const suffix = isChinese ? '等' : 'et al';
+                        authorStr = `${firstAuthor} ${suffix}`;
+                    } else {
+                        // 正常情况：显示最多3个作者
+                        const authors = originalAuthors
+                            .map(processAuthor)
+                            .filter(name => name)
+                            .slice(0, 3);
+                        if (authors.length === 0) return;
+                        authorStr = authors.join(', ');
+                    }
+
+                    // 统一标点处理（中文保留句号，英文用点号）
+                    const endingPunctuation = isChinese ? '。' : '.';
+                    authorStr = authorStr.replace(/[.,。，、]+$/g, '') + endingPunctuation;
+                    contentParts.push(authorStr);
+                }
+
+                // 处理标题
+                if (itemData.title) {
+                    const titleStr = itemData.title
+                        .trim()
+                        .replace(/\.+$/, '') + '.';
+                    contentParts.push(titleStr);
+                }
+
+                // 处理日期
+                if (itemData.issued?.hasOwnProperty('date-parts')) {
+                    const [year, month = 1, day = 1] = itemData.issued['date-parts'][0];
+                    const formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    contentParts.push(`${formattedDate}.`);
+                }
+
+                // 处理期刊标题
+                if (itemData['container-title']) {
+                    const containerStr = itemData['container-title']
+                        .trim()
+                        .replace(/\.+$/, '') + '.';
+                    contentParts.push(containerStr);
+                }
+
+                // 拼接内容并处理结尾格式
+                const content = contentParts.join(' ')
+                    .replace(/\s\./g, '.') // 处理多余的空格+句号
+                    .replace(/\.+/g, '.')  // 合并多个句号
+                    .trim();
+
+                result.push({
+                    id: idCounter++,
+                    title: formattedCitation,
+                    content: content.endsWith('.') ? content : content + '.',
+                    positioning: itemData.title
+                });
+            }
+
+            return result;
+        }
+
+
+    </script>
+</body>
+
+</html>

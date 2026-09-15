@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>技术支持信息</title>
+   
+</head>
+
+<body>
+    <div class="card">
+        <div class="header">
+            <div class="version" id="versionContainer"></div>
+            <div class="button-group">
+                <button class="btn btn-update" onclick="onbuttonclick('updateZotero')">前往更新</button>
+                <button class="btn btn-uninstall" onclick="onbuttonclick('uninstallZotero')">卸载插件</button>
+            </div>
+            <div class="support-info">
+                由 <span style="color: #e74c3c;">初心不忘</span> 开发<br>
+                联系方式：<span class="contact">QQ 897081475</span>
+            </div>
+        </div>
+
+        <div class="license">
+            <strong>原作声明：</strong><br>
+            This add-on is licensed under GPL-3.0:
+            <a href="http://www.gnu.org/licenses/" target="_blank">http://www.gnu.org/licenses/</a>,<br>
+            it comes with no warranty.
+
+            <div class="author-info">
+          
+                <a   href="https://github.com/tankwyn/WPS-Zotero" target="_blank">
+                    本项目基于：https://github.com/tankwyn/WPS-Zotero    修改和开发。
+                </a>
+            </div>
+        </div>
+
+
+    </div>
+   
+</body>
+<script type="text/javascript" src="../version.js"></script>
+
+<script type="text/javascript" src="../js/about.js"></script>
+<script type="text/javascript" src="../js/tools.js"></script>
+<script type="text/javascript" src="../js/wpsApp.js"></script>
+<script type="text/javascript" src="../js/JSA.js"></script>
+<script>
+    // 自动获取版本号
+
+    const container = document.getElementById('versionContainer');
+    container.innerHTML = `Zotero-Wps文字加载项(${VERSION})` + container.innerHTML;
+
+
+</script>
+<style>
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        line-height: 1.6;
+        max-width: 600px;
+        margin: 10px auto;
+        padding: 12px;
+        background-color: #f5f5f5;
+        color: #333;
+    }
+
+    .card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .header {
+        border-bottom: 2px solid #eee;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+
+    .version {
+        color: #2c3e50;
+        font-size: 28px;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+    .support-info {
+        color: #666;
+        margin: 15px 0;
+    }
+
+    .contact {
+        color: #2980b9;
+        font-weight: 500;
+    }
+
+    .license {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 20px 0;
+        font-size: 0.9em;
+    }
+
+    .author-info {
+        margin-top: 25px;
+        font-size: 0.9em;
+        color: #7f8c8d;
+        text-align: center;
+    }
+
+    a {
+        color: #3498db;
+        text-decoration: none;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+    .btn {
+        padding: 8px 20px;
+        /* 原10px 24px */
+        border: none;
+        border-radius: 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        font-size: 18px;
+        /* 原14px */
+        letter-spacing: 0.8px;
+        /* 增加字间距 */
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+        /* 阴影加深 */
+        min-width: 120px;
+        /* 确保最小宽度 */
+    }
+
+    .button-group {
+        margin-top: 15px;
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-update {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+    }
+
+    .btn-update:hover {
+        filter: brightness(1.1);
+    }
+
+    .btn-uninstall {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+    }
+    .btn-uninstall:hover {
+        filter: brightness(1.1);
+    }
+
+</style>
+
+</html>
