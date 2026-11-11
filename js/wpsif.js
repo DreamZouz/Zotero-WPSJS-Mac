@@ -1024,14 +1024,18 @@ var zc_wps = {
         const doc = zc_getDocumentById(docId);
         const fieldsDataArr = [];
         // Fields in main texts.
-        for (let i = 1; i <= doc.Fields.Count; i++) {
+        // Cache the count: every `doc.Fields.Count` read is a cross-process call into WPS.
+        const mainFieldCount = doc.Fields.Count;
+        for (let i = 1; i <= mainFieldCount; i++) {
             const data = zc_getZoteroFieldData(doc.Fields.Item(i));
             if (data) fieldsDataArr.push(data);
         }
         // Fields in footnotes
-        for (let i = 1; i <= doc.Footnotes.Count; i++) {
+        const footnoteCount = doc.Footnotes.Count;
+        for (let i = 1; i <= footnoteCount; i++) {
             const range = doc.Footnotes.Item(i).Range;
-            for (let j = 1; j <= range.Fields.Count; j++) {
+            const footnoteFieldCount = range.Fields.Count;
+            for (let j = 1; j <= footnoteFieldCount; j++) {
                 const data = zc_getZoteroFieldData(range.Fields.Item(j));
                 if (data) {
                     // Prevent adjacent fields to be added twice.
@@ -1065,7 +1069,8 @@ var zc_wps = {
         range.Collapse(wps.Enum.wdCollapseEnd);
         zc_traceStep('cursor.fields');
         const fields = [];
-        for (let i = 1; i <= range.Fields.Count; i++) {
+        const nearFieldCount = range.Fields.Count;
+        for (let i = 1; i <= nearFieldCount; i++) {
             const field = range.Fields.Item(i);
             if (client.registerField(field)) {
                 fields.push(field);
@@ -1075,7 +1080,8 @@ var zc_wps = {
             // extend range to include fields before the cursor
             range.MoveStart(wps.Enum.wdCharacter, -1);
             zc_traceStep('cursor.previous');
-            for (let i = 1; i <= range.Fields.Count; i++) {
+            const prevFieldCount = range.Fields.Count;
+            for (let i = 1; i <= prevFieldCount; i++) {
                 const field = range.Fields.Item(i);
                 if (client.registerField(field)) {
                     fields.push(field);
@@ -1083,7 +1089,15 @@ var zc_wps = {
             }
         }
         zc_traceStep('cursor.result');
-        return fields.length > 0 ? zc_getZoteroFieldData(fields[0]) : null;
+        // This helper only locates the insertion point for addEditBibliography.
+        // Returning null (no field near cursor) is a valid answer, so a failure to
+        // read the nearest field must not abort the whole integration transaction.
+        try {
+            return fields.length > 0 ? zc_getZoteroFieldData(fields[0]) : null;
+        } catch (e) {
+            zc_traceStep('cursor.safeNull');
+            return null;
+        }
     },
 
     isInLink: function(docId) {
