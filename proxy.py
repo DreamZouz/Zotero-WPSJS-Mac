@@ -117,6 +117,14 @@ class Handler(BaseHTTPRequestHandler):
             connection.close()
 
 
+class BridgeServer(ThreadingHTTPServer):
+    # socketserver's default listen backlog is 5, which is small enough that the
+    # kernel refuses the tail of the add-on's request burst. The refused
+    # connection reaches WPS as an XHR error reported as "is Zotero running?",
+    # even though Zotero is healthy and answering /connector/ping.
+    request_queue_size = 256
+
+
 def main(argv):
     if len(argv) > 1 and argv[1] == 'kill':
         stop_proxy()
@@ -126,7 +134,7 @@ def main(argv):
     logging.basicConfig(handlers=[handler], level=logging.INFO,
                         format='%(asctime)s %(message)s')
     try:
-        server = ThreadingHTTPServer(('127.0.0.1', PROXY_PORT), Handler)
+        server = BridgeServer(('127.0.0.1', PROXY_PORT), Handler)
     except OSError as error:
         if error.errno == errno.EADDRINUSE:
             return
